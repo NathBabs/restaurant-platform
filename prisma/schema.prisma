@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["filterJson", "fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id              Int     @id
+  name            String
+  cashBalance     Float
+  purchaseHistory order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// some restaturants in which a user has ordered from doesn't exist among the restaurants data
+// so we won't be creating a relation between order and restaurant models
+model order {
+  id                Int      @id @default(autoincrement())
+  dishName          String
+  restaurantName    String
+  transactionAmount Float
+  transactionDate   DateTime
+  user              user     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId            Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model restaurant {
+  id             Int             @id @default(autoincrement())
+  restaurantName String
+  cashBalance    Float
+  menu           menu[]
+  opening_hours  opening_hours[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model menu {
+  id           Int    @id @default(autoincrement())
+  dishName     String
+  price        Float
+  restaurantId Int
+
+  restaurant restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model opening_hours {
+  id           Int      @id @default(autoincrement())
+  restaurantId Int
+  day          String
+  opens_at     DateTime @db.Time()
+  closes_at    DateTime @db.Time()
+
+  restaurant restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}

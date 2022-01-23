@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "order" ALTER COLUMN "transactionAmount" SET DATA TYPE DOUBLE PRECISION;
+
+-- AlterTable
+ALTER TABLE "restaurant" ALTER COLUMN "cashBalance" SET DATA TYPE DOUBLE PRECISION;
+
+-- AlterTable
+ALTER TABLE "user" ALTER COLUMN "cashBalance" SET DATA TYPE DOUBLE PRECISION;
