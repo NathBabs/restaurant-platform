@@ -8,6 +8,7 @@ const prisma = new Prisma.PrismaClient({
     log: ['info']
 });
 import _ from 'lodash';
+import moment from 'moment';
 import { buildStream } from "../utils/buildStream.js";
 import { buildOpeningHours } from "../utils/parseHours.js";
 import restaurant from "../routes/restaurant.js";
@@ -196,7 +197,8 @@ export const listRestaurant = async  (req, res, next) => {
                 }
             },
             include: {
-                menu: true
+                menu: true,
+                opening_hours: true
             }
         })
 
@@ -237,14 +239,74 @@ export const listRestaurant = async  (req, res, next) => {
 /**
  * list all restaurants that open by a certain dateTime
  * ?day=wed&time8:00pm
+ * opening_hour lte time,
+ * closing_hour gte time
+ * day = day
  * @param {e.Request} req
  * @param {e.Response} res
  * @param {e.NextFunction} next
  */
 export const searchOpeningHours = async (req, res, next) => {
     try{
+        const {day, time} =  req.query;
 
-    }catch(error){
+    // format time to epoch start date
+        let formattedTime = moment(time, "LT", "HH:mm:ss").diff(moment().startOf('day'), 'milliseconds');
+        formattedTime = new Date(formattedTime);
 
+        const restaurants = await prisma.restaurant.findMany({
+        where: {
+            opening_hours: {
+                some: {
+                    day: day,
+                    opens_at: {
+                        lte: formattedTime
+                    },
+                    closes_at: {
+                        gte: formattedTime
+                    }
+                }
+            }
+        },
+            include: {
+                opening_hours: {
+                    where: {
+                        day: day,
+                        opens_at: {
+                            lte: formattedTime
+                        },
+                        closes_at: {
+                            gte: formattedTime
+                        }
+                    }
+                }
+            }
+    });
+
+        // const restaurants = await prisma.opening_hours.findMany({
+        //     where: {
+        //         day: day,
+        //         opens_at: {
+        //             lte: formattedTime
+        //         },
+        //         closes_at: {
+        //             gte: formattedTime
+        //         }
+        //     },
+        //     select: {
+        //         restaurant:true
+        //     }
+        // })
+
+        return res.status(200).send({
+            success: true,
+            data: restaurants
+        })
+
+    } catch(error){
+        return res.status(500).send({
+            success: true,
+            error: error.message
+        })
     }
 }
