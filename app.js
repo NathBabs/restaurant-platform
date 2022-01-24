@@ -15,6 +15,10 @@ app.use(express.urlencoded({
     extended: false
 }));
 
+app.get('/', (req, res) => {
+    res.send(`Restaurant Platform v.1.0 ${new Date()}`);
+});
+
 app.use('/', router);
 
 
