@@ -11,8 +11,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { buildStream } from "../utils/buildStream.js";
 import { buildOpeningHours } from "../utils/parseHours.js";
-import restaurant from "../routes/restaurant.js";
-import {response} from "express";
+import {purchase} from "../utils/purchase.js"
 
 /**
  *
@@ -306,6 +305,98 @@ export const searchOpeningHours = async (req, res, next) => {
     } catch(error){
         return res.status(500).send({
             success: true,
+            error: error.message
+        })
+    }
+}
+
+/**
+ * Purchase a dish from a restaurant
+ *  {
+ *      restId: 25,
+ *      menuId: 3,
+ *      userId: 46
+ *  }
+ * @param {e.Request} req
+ * @param {e.Response} res
+ * @param {e.NextFunction} next
+ */
+export const purchaseDish = async  (req, res, next) => {
+    try{
+        // get the id of the user
+        //TODO: get the id of the restaurant
+        //TODO: get the id of the dish(MENU MODEL)
+
+        const restId = Number(req.body.restId);
+        const menuId = Number(req.body.menuId);
+        const userId = Number(req.body.userId);
+
+        const restaurant = await prisma.restaurant.findUnique({
+            where: {
+                id: restId
+            },
+            include: {
+                menu: {
+                    where: {
+                        id: menuId
+                    }
+                }
+            }
+        });
+
+        if(!restaurant){
+            throw new Error("This dish or restaurant doesn't exist")
+        }
+
+        // get price of the dish
+        const price = restaurant.menu[0].price;
+        // get and format the transaction date
+        let transactionDate = moment().format("YYYY-MM-DD HH:MM:SS");
+        transactionDate = new Date(transactionDate);
+
+        const result = await purchase(userId, restId, price);
+
+        // update users order
+        // const data = {
+        //     dishName: restaurant.menu[0].dishName,
+        //     restaurantName: restaurant.restaurantName,
+        //     transactionAmount: price,
+        //     transactionDate: transactionDate,
+        //     user: {
+        //         connect: {
+        //             id: userId
+        //         }
+        //     }
+        // };
+
+        const updateBuyer  = await prisma.order.create({
+            data: {
+                dishName: restaurant.menu[0].dishName,
+                restaurantName: restaurant.restaurantName,
+                transactionAmount: price,
+                transactionDate: transactionDate,
+                user: {
+                    connect: {
+                        id: userId
+                    }
+                }
+            }
+        })
+        //console.log(restaurant);
+
+
+        return res.status(200).send({
+            success: true,
+            message: `You have successfully bought this ${restaurant.menu[0].dishName} from ${restaurant.restaurantName} for ${price}`,
+            data: {
+                restaurant: restaurant,
+                result: result,
+                user: updateBuyer
+            }
+        })
+    }catch (error) {
+        return res.status(500).send({
+            success: false,
             error: error.message
         })
     }
