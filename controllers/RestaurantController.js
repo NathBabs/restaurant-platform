@@ -1,11 +1,7 @@
-// import pckg from '@prisma/client';
-// const { PrismaClient } = pckg;
-// const prisma = new PrismaClient();
-//const {} =  Prisma
 import Prisma from '@prisma/client';
 const prisma = new Prisma.PrismaClient({
     errorFormat: 'pretty',
-    log: ['info']
+    log: ["info", "error"]
 });
 import _ from 'lodash';
 import moment from 'moment';
@@ -44,13 +40,6 @@ export const restaurantEtl = async (req, res, next) => {
                     }
                 }
 
-                // if(!_.isDate(restaurantData.opening_hours.opens_at)){
-                //     console.log(JSON.stringify(restaurantData, null, 4));
-                //     throw new Error('Missing date value');
-                // }
-
-                //console.log(JSON.stringify(restaurantData, null, 4));
-                //console.log(restaurantData.opening_hours);
                 prisma.restaurant.create({
                     data: restaurantData
                 }).then((data) => {
@@ -76,22 +65,6 @@ export const restaurantEtl = async (req, res, next) => {
 // search for restaurants and dishes by name
 export const searchRestaurants = async (req, res, next) => {
     try {
-        // build where filter if any of the query properties exist
-        // const where = {
-        //     ...((req.query.restaurantName) && {
-        //         restaurantName: {
-        //             search: req.query.restaurantName
-        //     } }),
-        //     ...((req.query.dishName) && {
-        //         menu: {
-        //             dishName: {
-        //                 search: req.query.dishName
-        //             }
-        //         }
-        //     })
-        // };
-        // console.log('where', where)
-
         let results = [];
 
         if (req.query.restaurantName) {
@@ -136,14 +109,6 @@ export const searchRestaurants = async (req, res, next) => {
                 dishes: dishes
             })
         }
-
-        // const result = await prisma.restaurant.findMany({
-        //     where: {
-        //         restaurantName: {
-        //             contains: 'Japanese'
-        //         }
-        //     }
-        // })
 
         return res.status(201).send({
             success: true,
@@ -282,21 +247,6 @@ export const searchOpeningHours = async (req, res, next) => {
             }
     });
 
-        // const restaurants = await prisma.opening_hours.findMany({
-        //     where: {
-        //         day: day,
-        //         opens_at: {
-        //             lte: formattedTime
-        //         },
-        //         closes_at: {
-        //             gte: formattedTime
-        //         }
-        //     },
-        //     select: {
-        //         restaurant:true
-        //     }
-        // })
-
         return res.status(200).send({
             success: true,
             data: restaurants
@@ -331,6 +281,7 @@ export const purchaseDish = async  (req, res, next) => {
         const menuId = Number(req.body.menuId);
         const userId = Number(req.body.userId);
 
+        // get the restaurant that owns the dish
         const restaurant = await prisma.restaurant.findUnique({
             where: {
                 id: restId
@@ -356,18 +307,6 @@ export const purchaseDish = async  (req, res, next) => {
 
         const result = await purchase(userId, restId, price);
 
-        // update users order
-        // const data = {
-        //     dishName: restaurant.menu[0].dishName,
-        //     restaurantName: restaurant.restaurantName,
-        //     transactionAmount: price,
-        //     transactionDate: transactionDate,
-        //     user: {
-        //         connect: {
-        //             id: userId
-        //         }
-        //     }
-        // };
 
         const updateBuyer  = await prisma.order.create({
             data: {
@@ -382,16 +321,12 @@ export const purchaseDish = async  (req, res, next) => {
                 }
             }
         })
-        //console.log(restaurant);
-
 
         return res.status(200).send({
             success: true,
             message: `You have successfully bought this ${restaurant.menu[0].dishName} from ${restaurant.restaurantName} for ${price}`,
             data: {
-                restaurant: restaurant,
-                result: result,
-                user: updateBuyer
+                order: updateBuyer
             }
         })
     }catch (error) {

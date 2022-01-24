@@ -61,15 +61,9 @@ export const buildOpeningHours = (opening_hours) => {
         }
 
         // for non single days
-        //indvTimes = timeStr.split(/[-]+/);
+        // indvTimes = timeStr.split(/[-]+/);
         // the day is at the second index because of the white space at the begining when splitting
         let oneDay;
-        // if (index > 0) {
-        //     oneDay = check[1];
-        // } else {
-        //     // if it's the first one, then there's no space at at the begining
-        //     oneDay = check[0];
-        // }
         oneDay = check[0];
 
         let timeSTR = check.join(" ");
