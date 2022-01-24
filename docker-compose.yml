@@ -7,10 +7,8 @@ services:
     restart: always
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: "buying-frenzy"
+    env_file:
+      - .env
     volumes:
       - postgres:/var/lib/postgresql/data
   server:
@@ -19,8 +17,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/buying-frenzy?schema=public"
+    env_file:
+      - .env
     depends_on:
       - db
 
