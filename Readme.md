@@ -1,5 +1,29 @@
 # A Buying Frenzy
 
+
+# Building
+
+### Setup
+```
+$ git clone https://github.com/NathBabs/restaurant-platform.git
+$ cd restaurant-platform
+```
+  
+Create a .env file in the root folder and set the following environment variables <br>
+
+
+```
+DATABASE_URL="postgresql://postgres:postgres@db:5432/buying-frenzy?schema=public"
+
+POSTGRES_USER="postgres"
+POSTGRES_PASSWORD="postgres"
+POSTGRES_DB="buying-frenzy"
+```
+### Start Server
+```
+$ docker-compose up -d
+```
+
 ### Base Route <br>
  ``https://restaurant-platfrom.herokuapp.com/``
 
