@@ -7,7 +7,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { buildStream } from "../utils/buildStream.js";
 import { buildOpeningHours } from "../utils/parseHours.js";
-import {purchase} from "../utils/purchase.js"
+import { purchase } from "../utils/purchase.js"
 
 /**
  *
@@ -89,11 +89,11 @@ export const searchRestaurants = async (req, res, next) => {
         }
 
 
-        if (req.query.dishName){
+        if (req.query.dishName) {
             const dishes = await prisma.menu.findMany({
                 where: {
                     dishName: {
-                        search : req.query.dishName
+                        search: req.query.dishName
                     }
                 },
                 orderBy: {
@@ -130,9 +130,9 @@ export const searchRestaurants = async (req, res, next) => {
  * @param {e.Response} res
  * @param {e.NextFunction} next
  */
-export const listRestaurant = async  (req, res, next) => {
-    try{
-        const {noOfRest, noOfdishes, upperRange, lowerRange, condition} = req.query;
+export const listRestaurant = async (req, res, next) => {
+    try {
+        const { noOfRest, noOfdishes, upperRange, lowerRange, condition } = req.query;
 
         //const splitRange = priceRange.split('-');
         const lowerLimit = Number(lowerRange);
@@ -170,11 +170,11 @@ export const listRestaurant = async  (req, res, next) => {
         let sorted;
 
         // greater than X {noOfdishes}
-        if(condition === 'gt'){
+        if (condition === 'gt') {
             sorted = results.filter((restaurant) => {
                 return restaurant.menu.length > noOfdishes
             })
-        }else{
+        } else {
             // else return those that are less than X {noOfdishes}
             sorted = results.filter((restaurant) => {
                 return restaurant.menu.length < noOfdishes
@@ -189,7 +189,7 @@ export const listRestaurant = async  (req, res, next) => {
             data: part
         })
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
         return res.status(400).send({
             success: false,
@@ -211,27 +211,27 @@ export const listRestaurant = async  (req, res, next) => {
  * @param {e.NextFunction} next
  */
 export const searchOpeningHours = async (req, res, next) => {
-    try{
-        const {day, time} =  req.query;
+    try {
+        const { day, time } = req.query;
 
-    // format time to epoch start date
+        // format time to epoch start date
         let formattedTime = moment(time, "LT", "HH:mm:ss").diff(moment().startOf('day'), 'milliseconds');
         formattedTime = new Date(formattedTime);
 
         const restaurants = await prisma.restaurant.findMany({
-        where: {
-            opening_hours: {
-                some: {
-                    day: day,
-                    opens_at: {
-                        lte: formattedTime
-                    },
-                    closes_at: {
-                        gte: formattedTime
+            where: {
+                opening_hours: {
+                    some: {
+                        day: day,
+                        opens_at: {
+                            lte: formattedTime
+                        },
+                        closes_at: {
+                            gte: formattedTime
+                        }
                     }
                 }
-            }
-        },
+            },
             include: {
                 opening_hours: {
                     where: {
@@ -245,14 +245,14 @@ export const searchOpeningHours = async (req, res, next) => {
                     }
                 }
             }
-    });
+        });
 
         return res.status(200).send({
             success: true,
             data: restaurants
         })
 
-    } catch(error){
+    } catch (error) {
         return res.status(500).send({
             success: true,
             error: error.message
@@ -271,12 +271,8 @@ export const searchOpeningHours = async (req, res, next) => {
  * @param {e.Response} res
  * @param {e.NextFunction} next
  */
-export const purchaseDish = async  (req, res, next) => {
-    try{
-        // get the id of the user
-        //TODO: get the id of the restaurant
-        //TODO: get the id of the dish(MENU MODEL)
-
+export const purchaseDish = async (req, res, next) => {
+    try {
         const restId = Number(req.body.restId);
         const menuId = Number(req.body.menuId);
         const userId = Number(req.body.userId);
@@ -295,7 +291,7 @@ export const purchaseDish = async  (req, res, next) => {
             }
         });
 
-        if(!restaurant){
+        if (!restaurant) {
             throw new Error("This dish or restaurant doesn't exist")
         }
 
@@ -308,7 +304,7 @@ export const purchaseDish = async  (req, res, next) => {
         const result = await purchase(userId, restId, price);
 
 
-        const updateBuyer  = await prisma.order.create({
+        const updateBuyer = await prisma.order.create({
             data: {
                 dishName: restaurant.menu[0].dishName,
                 restaurantName: restaurant.restaurantName,
@@ -329,7 +325,7 @@ export const purchaseDish = async  (req, res, next) => {
                 order: updateBuyer
             }
         })
-    }catch (error) {
+    } catch (error) {
         return res.status(500).send({
             success: false,
             error: error.message
