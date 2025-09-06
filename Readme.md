@@ -1,6 +1,5 @@
 # A Buying Frenzy
 
-A solution for restautant task found here https://gist.github.com/seahyc/97b154ce5bfd4f2b6e3a3a99a7b93f69
 
 # Building
 
